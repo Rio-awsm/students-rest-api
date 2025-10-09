@@ -12,11 +12,20 @@ import (
 
 	"gihub.com/Rio-awsm/students-rest-api/internal/config"
 	"gihub.com/Rio-awsm/students-rest-api/internal/http/handlers/student"
+	"gihub.com/Rio-awsm/students-rest-api/internal/storage/sqlite"
 )
 
 func main() {
 	//load config
 	cfg := config.MustLoad()
+
+	//db setup
+	_, err := sqlite.New(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	slog.Info("storage init", slog.String("env", cfg.Env), slog.String("version", "1.0.0"))
 
 	//setup router
 	router := http.NewServeMux()
