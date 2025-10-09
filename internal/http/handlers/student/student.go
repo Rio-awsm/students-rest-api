@@ -10,10 +10,12 @@ import (
 
 	"gihub.com/Rio-awsm/students-rest-api/internal/types"
 	"gihub.com/Rio-awsm/students-rest-api/internal/utils/response"
+	"github.com/go-playground/validator/v10"
 )
 
 func New() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		slog.Info("creating student")
 
 		var student types.Student
 
@@ -23,7 +25,18 @@ func New() http.HandlerFunc {
 			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(fmt.Errorf("empty body")))
 			return
 		}
-		slog.Info("creating student")
+
+		if err != nil {
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(err))
+			return
+		}
+
+		//request validation
+		if err := validator.New().Struct(student); err != nil {
+			validateErrs := err.(validator.ValidationErrors)
+			response.WriteJson(w, http.StatusBadRequest, response.ValidationError(validateErrs))
+			return
+		}
 
 		response.WriteJson(w, http.StatusCreated, map[string]string{"success": "OK"})
 	}
